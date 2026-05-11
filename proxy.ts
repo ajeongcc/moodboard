@@ -34,8 +34,8 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  // 로그인 안 한 상태에서 /profile 접근 → /login으로 리다이렉트
-  if (!user && pathname.startsWith('/profile')) {
+  // 로그인 안 한 상태에서 /profile 또는 /boards 접근 → /login으로 리다이렉트
+  if (!user && (pathname.startsWith('/profile') || pathname.startsWith('/boards'))) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
@@ -52,5 +52,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/profile/:path*', '/login', '/signup'],
+  matcher: ['/profile/:path*', '/boards/:path*', '/login', '/signup'],
 }
