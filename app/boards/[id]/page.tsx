@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/utils/supabase/server'
 import ThemeToggle from '@/components/ThemeToggle'
 import DeleteBoardButton from './DeleteBoardButton'
+import EditBoardButton from './EditBoardButton'
 
 export default async function BoardPage({
   params,
@@ -24,15 +25,15 @@ export default async function BoardPage({
   // 현재 로그인된 사용자
   const { data: { user } } = await supabase.auth.getUser()
 
-  // 이미지 URL + storage 경로 목록
-  const images = (board.moodboard_images as { id: string; storage_path: string }[]).map(
-    (img) => {
+  // 이미지 순서 정렬 + URL 생성
+  const images = (board.moodboard_images as { id: string; storage_path: string; order_index: number }[])
+    .sort((a, b) => a.order_index - b.order_index)
+    .map((img) => {
       const { data } = supabase.storage
         .from('moodboard-images')
         .getPublicUrl(img.storage_path)
       return { id: img.id, url: data.publicUrl, path: img.storage_path }
-    }
-  )
+    })
 
   const createdAt = new Date(board.created_at).toLocaleDateString('ko-KR', {
     year: 'numeric',
@@ -58,7 +59,7 @@ export default async function BoardPage({
           </div>
         </div>
 
-        {/* 무드보드 제목 / 설명 / 삭제 버튼 */}
+        {/* 무드보드 제목 / 설명 / 버튼 */}
         <div className="flex items-start justify-between gap-4 mb-10">
           <div>
             <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">{board.title}</h1>
@@ -70,9 +71,10 @@ export default async function BoardPage({
             </p>
           </div>
 
-          {/* 본인 보드일 때만 삭제 버튼 표시 */}
+          {/* 본인 보드일 때만 편집/삭제 버튼 표시 */}
           {isOwner && (
-            <div className="shrink-0 mt-1">
+            <div className="shrink-0 mt-1 flex items-center gap-2">
+              <EditBoardButton boardId={board.id} />
               <DeleteBoardButton
                 boardId={board.id}
                 imagePaths={images.map((img) => img.path)}
