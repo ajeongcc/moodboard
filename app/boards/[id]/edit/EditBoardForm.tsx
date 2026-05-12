@@ -449,12 +449,12 @@ export default function EditBoardForm({ boardId, initialTitle, initialDescriptio
             </div>
             {videoInputError && <p className="text-xs text-red-500 dark:text-red-400">{videoInputError}</p>}
             {/* youtube/vimeo 카드만 표시 */}
-            {[...existingVideos, ...newVideos].filter(v => v.platform !== 'soundcloud').length > 0 && (
+            {[...existingVideos, ...newVideos].filter(v => v.platform === 'youtube' || v.platform === 'vimeo').length > 0 && (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {existingVideos.filter(v => v.platform !== 'soundcloud').map((v) => (
+                {existingVideos.filter(v => v.platform === 'youtube' || v.platform === 'vimeo').map((v) => (
                   <VideoCard key={v.id} video={v} onRemove={handleRemoveExistingVideo} />
                 ))}
-                {newVideos.filter(v => v.platform !== 'soundcloud').map((v) => (
+                {newVideos.filter(v => v.platform === 'youtube' || v.platform === 'vimeo').map((v) => (
                   <VideoCard key={v.tempId} video={v} onRemove={handleRemoveNewVideo} />
                 ))}
               </div>
