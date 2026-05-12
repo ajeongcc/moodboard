@@ -10,30 +10,46 @@ export default async function EditBoardPage({
   const { id } = await params
   const supabase = await createClient()
 
-  // 로그인 확인
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // 무드보드 + 이미지 가져오기
   const { data: board } = await supabase
     .from('moodboards')
-    .select('*, moodboard_images(*)')
+    .select('*, moodboard_images(*), moodboard_videos(*)')
     .eq('id', id)
     .single()
 
   if (!board) notFound()
-
-  // 본인 보드가 아니면 보드 뷰로 리다이렉트
   if (board.user_id !== user.id) redirect(`/boards/${id}`)
 
-  // 이미지 목록 (order_index 순으로 정렬)
+  // 이미지 목록 (order_index 순)
   const images = (board.moodboard_images as { id: string; storage_path: string; order_index: number }[])
     .sort((a, b) => a.order_index - b.order_index)
     .map((img) => {
-      const { data } = supabase.storage
-        .from('moodboard-images')
-        .getPublicUrl(img.storage_path)
+      const { data } = supabase.storage.from('moodboard-images').getPublicUrl(img.storage_path)
       return { id: img.id, url: data.publicUrl, path: img.storage_path }
+    })
+
+  // 영상 목록 (order_index 순)
+  const videos = (board.moodboard_videos as {
+    id: string
+    embed_url: string
+    original_url: string
+    order_index: number
+  }[])
+    .sort((a, b) => a.order_index - b.order_index)
+    .map((v) => {
+      const platform = v.embed_url.includes('youtube') ? 'youtube' : 'vimeo'
+      const videoId = platform === 'youtube'
+        ? v.embed_url.split('/embed/')[1]
+        : v.embed_url.split('/video/')[1]
+      return {
+        id: v.id,
+        embedUrl: v.embed_url,
+        originalUrl: v.original_url,
+        platform: platform as 'youtube' | 'vimeo',
+        videoId,
+      }
     })
 
   return (
@@ -42,6 +58,7 @@ export default async function EditBoardPage({
       initialTitle={board.title}
       initialDescription={board.description ?? ''}
       initialImages={images}
+      initialVideos={videos}
     />
   )
 }
