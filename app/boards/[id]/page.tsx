@@ -95,6 +95,8 @@ export default async function BoardPage({
                 ? 'youtube'
                 : video.embed_url.includes('vimeo')
                 ? 'vimeo'
+                : video.embed_url.includes('spotify')
+                ? 'spotify'
                 : 'soundcloud'
               return (
                 <VideoEmbed

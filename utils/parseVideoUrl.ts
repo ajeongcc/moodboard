@@ -1,6 +1,6 @@
 // YouTube / Vimeo / SoundCloud 링크를 embed URL로 변환하는 함수
 
-export type MediaPlatform = 'youtube' | 'vimeo' | 'soundcloud'
+export type MediaPlatform = 'youtube' | 'vimeo' | 'soundcloud' | 'spotify'
 
 export interface ParsedMedia {
   embedUrl: string
@@ -37,6 +37,23 @@ export function parseVideoUrl(url: string): ParsedMedia | null {
       embedUrl: `https://player.vimeo.com/video/${vimeoMatch[1]}`,
       platform: 'vimeo',
       videoId: vimeoMatch[1],
+    }
+  }
+
+  // ── Spotify ───────────────────────────────────────────────
+  // 지원 형식:
+  //   https://open.spotify.com/track/ID
+  //   https://open.spotify.com/album/ID
+  //   https://open.spotify.com/playlist/ID
+  //   https://open.spotify.com/episode/ID
+  const spotifyMatch = trimmed.match(
+    /open\.spotify\.com\/(track|album|playlist|episode)\/([a-zA-Z0-9]+)/
+  )
+  if (spotifyMatch) {
+    return {
+      embedUrl: `https://open.spotify.com/embed/${spotifyMatch[1]}/${spotifyMatch[2]}`,
+      platform: 'spotify',
+      videoId: spotifyMatch[2],
     }
   }
 
