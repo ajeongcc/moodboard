@@ -181,6 +181,8 @@ export default function EditBoardForm({ boardId, initialTitle, initialDescriptio
   const [newVideos, setNewVideos] = useState<NewVideo[]>([])
   const [videoInput, setVideoInput] = useState('')
   const [videoInputError, setVideoInputError] = useState('')
+  const [audioInput, setAudioInput] = useState('')
+  const [audioInputError, setAudioInputError] = useState('')
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -233,25 +235,40 @@ export default function EditBoardForm({ boardId, initialTitle, initialDescriptio
     })
   }
 
-  // 영상 URL 추가
+  // 영상 URL 추가 (YouTube / Vimeo만)
   function handleAddVideo() {
     setVideoInputError('')
     const parsed = parseVideoUrl(videoInput)
-    if (!parsed) {
+    if (!parsed || parsed.platform === 'soundcloud') {
       setVideoInputError('유튜브 또는 비메오 링크를 입력해주세요.')
       return
     }
-    setNewVideos((prev) => [
-      ...prev,
-      {
-        tempId: `video-${Date.now()}`,
-        embedUrl: parsed.embedUrl,
-        originalUrl: videoInput.trim(),
-        platform: parsed.platform,
-        videoId: parsed.videoId,
-      },
-    ])
+    setNewVideos((prev) => [...prev, {
+      tempId: `video-${Date.now()}`,
+      embedUrl: parsed.embedUrl,
+      originalUrl: videoInput.trim(),
+      platform: parsed.platform,
+      videoId: parsed.videoId,
+    }])
     setVideoInput('')
+  }
+
+  // 음악 URL 추가 (SoundCloud만)
+  function handleAddAudio() {
+    setAudioInputError('')
+    const parsed = parseVideoUrl(audioInput)
+    if (!parsed || parsed.platform !== 'soundcloud') {
+      setAudioInputError('사운드클라우드 링크를 입력해주세요.')
+      return
+    }
+    setNewVideos((prev) => [...prev, {
+      tempId: `audio-${Date.now()}`,
+      embedUrl: parsed.embedUrl,
+      originalUrl: audioInput.trim(),
+      platform: parsed.platform,
+      videoId: parsed.videoId,
+    }])
+    setAudioInput('')
   }
 
   // 기존 영상 삭제
@@ -405,41 +422,62 @@ export default function EditBoardForm({ boardId, initialTitle, initialDescriptio
             <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleFileChange} className="hidden" />
           </div>
 
-          {/* ── 영상 섹션 ── */}
+          {/* ── 영상 섹션 (YouTube / Vimeo) ── */}
           <div className="flex flex-col gap-3">
             <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">영상</label>
-
-            {/* URL 입력 */}
             <div className="flex gap-2">
               <input
                 type="url"
                 value={videoInput}
                 onChange={(e) => { setVideoInput(e.target.value); setVideoInputError('') }}
                 onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddVideo())}
-                placeholder="유튜브, 비메오, 사운드클라우드 링크를 붙여넣으세요"
+                placeholder="유튜브 또는 비메오 링크를 붙여넣으세요"
                 className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-50 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 outline-none focus:border-zinc-900 dark:focus:border-zinc-400 focus:ring-2 focus:ring-zinc-900/10 dark:focus:ring-zinc-400/20 transition"
               />
-              <button
-                type="button"
-                onClick={handleAddVideo}
-                className="shrink-0 rounded-lg bg-zinc-900 dark:bg-zinc-50 px-4 py-2.5 text-sm font-semibold text-white dark:text-zinc-900 hover:bg-zinc-700 dark:hover:bg-zinc-200 transition"
-              >
+              <button type="button" onClick={handleAddVideo}
+                className="shrink-0 rounded-lg bg-zinc-900 dark:bg-zinc-50 px-4 py-2.5 text-sm font-semibold text-white dark:text-zinc-900 hover:bg-zinc-700 dark:hover:bg-zinc-200 transition">
                 추가
               </button>
             </div>
-
-            {/* URL 에러 */}
-            {videoInputError && (
-              <p className="text-xs text-red-500 dark:text-red-400">{videoInputError}</p>
-            )}
-
-            {/* 영상 카드 목록 */}
-            {(existingVideos.length > 0 || newVideos.length > 0) && (
+            {videoInputError && <p className="text-xs text-red-500 dark:text-red-400">{videoInputError}</p>}
+            {/* youtube/vimeo 카드만 표시 */}
+            {[...existingVideos, ...newVideos].filter(v => v.platform !== 'soundcloud').length > 0 && (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {existingVideos.map((v) => (
+                {existingVideos.filter(v => v.platform !== 'soundcloud').map((v) => (
                   <VideoCard key={v.id} video={v} onRemove={handleRemoveExistingVideo} />
                 ))}
-                {newVideos.map((v) => (
+                {newVideos.filter(v => v.platform !== 'soundcloud').map((v) => (
+                  <VideoCard key={v.tempId} video={v} onRemove={handleRemoveNewVideo} />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* ── 음악 섹션 (SoundCloud) ── */}
+          <div className="flex flex-col gap-3">
+            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">음악</label>
+            <div className="flex gap-2">
+              <input
+                type="url"
+                value={audioInput}
+                onChange={(e) => { setAudioInput(e.target.value); setAudioInputError('') }}
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddAudio())}
+                placeholder="사운드클라우드 링크를 붙여넣으세요"
+                className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-50 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 outline-none focus:border-zinc-900 dark:focus:border-zinc-400 focus:ring-2 focus:ring-zinc-900/10 dark:focus:ring-zinc-400/20 transition"
+              />
+              <button type="button" onClick={handleAddAudio}
+                className="shrink-0 rounded-lg bg-zinc-900 dark:bg-zinc-50 px-4 py-2.5 text-sm font-semibold text-white dark:text-zinc-900 hover:bg-zinc-700 dark:hover:bg-zinc-200 transition">
+                추가
+              </button>
+            </div>
+            {audioInputError && <p className="text-xs text-red-500 dark:text-red-400">{audioInputError}</p>}
+            {/* soundcloud 카드만 표시 */}
+            {[...existingVideos, ...newVideos].filter(v => v.platform === 'soundcloud').length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {existingVideos.filter(v => v.platform === 'soundcloud').map((v) => (
+                  <VideoCard key={v.id} video={v} onRemove={handleRemoveExistingVideo} />
+                ))}
+                {newVideos.filter(v => v.platform === 'soundcloud').map((v) => (
                   <VideoCard key={v.tempId} video={v} onRemove={handleRemoveNewVideo} />
                 ))}
               </div>
