@@ -91,7 +91,11 @@ export default async function BoardPage({
             ))}
             {/* 영상 */}
             {videos.map((video) => {
-              const platform = video.embed_url.includes('youtube') ? 'youtube' : 'vimeo'
+              const platform = video.embed_url.includes('youtube')
+                ? 'youtube'
+                : video.embed_url.includes('vimeo')
+                ? 'vimeo'
+                : 'soundcloud'
               return (
                 <VideoEmbed
                   key={video.id}

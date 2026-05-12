@@ -39,10 +39,16 @@ export default async function EditBoardPage({
   }[])
     .sort((a, b) => a.order_index - b.order_index)
     .map((v) => {
-      const platform = v.embed_url.includes('youtube') ? 'youtube' : 'vimeo'
+      const platform = v.embed_url.includes('youtube')
+        ? 'youtube'
+        : v.embed_url.includes('vimeo')
+        ? 'vimeo'
+        : 'soundcloud'
       const videoId = platform === 'youtube'
         ? v.embed_url.split('/embed/')[1]
-        : v.embed_url.split('/video/')[1]
+        : platform === 'vimeo'
+        ? v.embed_url.split('/video/')[1]
+        : v.original_url  // SoundCloud는 원본 URL을 videoId로 사용
       return {
         id: v.id,
         embedUrl: v.embed_url,

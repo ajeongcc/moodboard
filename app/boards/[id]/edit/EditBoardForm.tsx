@@ -21,7 +21,7 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import { createClient } from '@/utils/supabase/client'
 import ThemeToggle from '@/components/ThemeToggle'
-import { parseVideoUrl, getYoutubeThumbnail } from '@/utils/parseVideoUrl'
+import { parseVideoUrl, getYoutubeThumbnail, type MediaPlatform } from '@/utils/parseVideoUrl'
 
 // ─── 타입 ────────────────────────────────────────────────────
 interface ExistingImage {
@@ -40,7 +40,7 @@ interface ExistingVideo {
   id: string
   embedUrl: string
   originalUrl: string
-  platform: 'youtube' | 'vimeo'
+  platform: MediaPlatform
   videoId: string
 }
 
@@ -48,7 +48,7 @@ interface NewVideo {
   tempId: string
   embedUrl: string
   originalUrl: string
-  platform: 'youtube' | 'vimeo'
+  platform: MediaPlatform
   videoId: string
 }
 
@@ -125,22 +125,30 @@ function VideoCard({
 }) {
   const id = 'id' in video ? video.id : video.tempId
   const thumbnail = video.platform === 'youtube' ? getYoutubeThumbnail(video.videoId) : null
+  const platformLabel = { youtube: 'YouTube', vimeo: 'Vimeo', soundcloud: 'SoundCloud' }[video.platform]
 
   return (
-    <div className="relative group rounded-xl overflow-hidden bg-zinc-100 dark:bg-zinc-800 aspect-video">
+    <div className={`relative group rounded-xl overflow-hidden bg-zinc-100 dark:bg-zinc-800 ${video.platform === 'soundcloud' ? 'aspect-[3/1]' : 'aspect-video'}`}>
       {thumbnail ? (
         <img src={thumbnail} alt="" className="w-full h-full object-cover" />
       ) : (
-        <div className="w-full h-full flex items-center justify-center">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-zinc-400">
-            <polygon points="5 3 19 12 5 21 5 3"/>
-          </svg>
+        <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+          {video.platform === 'soundcloud' ? (
+            /* SoundCloud 오렌지 파형 아이콘 */
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-orange-400">
+              <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+            </svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-zinc-400">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+          )}
         </div>
       )}
       {/* 플랫폼 뱃지 */}
       <div className="absolute bottom-2 left-2">
         <span className="text-white text-xs font-medium bg-black/50 px-2 py-0.5 rounded-full">
-          {video.platform === 'youtube' ? 'YouTube' : 'Vimeo'}
+          {platformLabel}
         </span>
       </div>
       {/* 삭제 버튼 */}
@@ -408,7 +416,7 @@ export default function EditBoardForm({ boardId, initialTitle, initialDescriptio
                 value={videoInput}
                 onChange={(e) => { setVideoInput(e.target.value); setVideoInputError('') }}
                 onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddVideo())}
-                placeholder="유튜브 또는 비메오 링크를 붙여넣으세요"
+                placeholder="유튜브, 비메오, 사운드클라우드 링크를 붙여넣으세요"
                 className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-50 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 outline-none focus:border-zinc-900 dark:focus:border-zinc-400 focus:ring-2 focus:ring-zinc-900/10 dark:focus:ring-zinc-400/20 transition"
               />
               <button
