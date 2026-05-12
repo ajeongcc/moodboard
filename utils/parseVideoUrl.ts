@@ -1,6 +1,6 @@
 // YouTube / Vimeo / SoundCloud 링크를 embed URL로 변환하는 함수
 
-export type MediaPlatform = 'youtube' | 'vimeo' | 'soundcloud' | 'spotify'
+export type MediaPlatform = 'youtube' | 'vimeo' | 'soundcloud' | 'spotify' | 'applemusic'
 
 export interface ParsedMedia {
   embedUrl: string
@@ -54,6 +54,20 @@ export function parseVideoUrl(url: string): ParsedMedia | null {
       embedUrl: `https://open.spotify.com/embed/${spotifyMatch[1]}/${spotifyMatch[2]}`,
       platform: 'spotify',
       videoId: spotifyMatch[2],
+    }
+  }
+
+  // ── Apple Music ──────────────────────────────────────────
+  // 지원 형식:
+  //   https://music.apple.com/kr/album/title/123456789
+  //   https://music.apple.com/kr/album/title/123456789?i=987654321  (트랙)
+  //   https://music.apple.com/kr/playlist/title/pl.abc123
+  // embed: music.apple.com → embed.music.apple.com
+  if (trimmed.match(/music\.apple\.com\/.+\/(album|playlist|song)/)) {
+    return {
+      embedUrl: trimmed.replace('music.apple.com', 'embed.music.apple.com'),
+      platform: 'applemusic',
+      videoId: trimmed,
     }
   }
 

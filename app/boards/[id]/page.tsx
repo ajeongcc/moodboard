@@ -97,6 +97,8 @@ export default async function BoardPage({
                 ? 'vimeo'
                 : video.embed_url.includes('spotify')
                 ? 'spotify'
+                : video.embed_url.includes('apple')
+                ? 'applemusic'
                 : 'soundcloud'
               return (
                 <VideoEmbed

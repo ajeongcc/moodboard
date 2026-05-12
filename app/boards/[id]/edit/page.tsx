@@ -45,6 +45,8 @@ export default async function EditBoardPage({
         ? 'vimeo'
         : v.embed_url.includes('spotify')
         ? 'spotify'
+        : v.embed_url.includes('apple')
+        ? 'applemusic'
         : 'soundcloud'
       const videoId = platform === 'youtube'
         ? v.embed_url.split('/embed/')[1]

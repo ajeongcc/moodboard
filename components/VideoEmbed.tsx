@@ -2,7 +2,7 @@
 
 interface Props {
   embedUrl: string
-  platform: 'youtube' | 'vimeo' | 'soundcloud' | 'spotify'
+  platform: 'youtube' | 'vimeo' | 'soundcloud' | 'spotify' | 'applemusic'
 }
 
 // 보드 뷰에서 영상/음악을 보여주는 플레이어 컴포넌트
@@ -19,6 +19,24 @@ export default function VideoEmbed({ embedUrl, platform }: Props) {
           allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
           loading="lazy"
           title="Spotify 음악"
+          className="block"
+        />
+      </div>
+    )
+  }
+
+  // Apple Music — 트랙은 175px, 앨범/플레이리스트는 450px
+  if (platform === 'applemusic') {
+    const isTrack = embedUrl.includes('?i=')
+    return (
+      <div className="break-inside-avoid mb-3 rounded-xl overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+        <iframe
+          src={embedUrl}
+          width="100%"
+          height={isTrack ? '175' : '450'}
+          allow="autoplay *; encrypted-media *; fullscreen *; clipboard-write"
+          sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation"
+          title="Apple Music"
           className="block"
         />
       </div>
