@@ -56,6 +56,7 @@ interface Props {
   boardId: string
   initialTitle: string
   initialDescription: string
+  initialIsPublic: boolean
   initialImages: ExistingImage[]
   initialVideos: ExistingVideo[]
 }
@@ -175,12 +176,13 @@ function VideoCard({
 }
 
 // ─── 메인 편집 폼 ─────────────────────────────────────────────
-export default function EditBoardForm({ boardId, initialTitle, initialDescription, initialImages, initialVideos }: Props) {
+export default function EditBoardForm({ boardId, initialTitle, initialDescription, initialIsPublic, initialImages, initialVideos }: Props) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [title, setTitle] = useState(initialTitle)
   const [description, setDescription] = useState(initialDescription)
+  const [isPublic, setIsPublic] = useState(initialIsPublic)
 
   // 이미지 상태
   const [existingImages, setExistingImages] = useState<ExistingImage[]>(initialImages)
@@ -310,10 +312,10 @@ export default function EditBoardForm({ boardId, initialTitle, initialDescriptio
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
 
-    // 1. 제목/설명 업데이트
+    // 1. 제목/설명/공개설정 업데이트
     const { error: updateError } = await supabase
       .from('moodboards')
-      .update({ title, description })
+      .update({ title, description, is_public: isPublic })
       .eq('id', boardId)
     if (updateError) { setError('저장 실패: ' + updateError.message); setLoading(false); return }
 
@@ -404,6 +406,23 @@ export default function EditBoardForm({ boardId, initialTitle, initialDescriptio
               placeholder="어떤 분위기의 무드보드인지 설명해보세요"
               className="rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-50 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 outline-none focus:border-zinc-900 dark:focus:border-zinc-400 focus:ring-2 focus:ring-zinc-900/10 dark:focus:ring-zinc-400/20 transition resize-none"
             />
+          </div>
+
+          {/* ── 공개 설정 토글 ── */}
+          <div className="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-zinc-800 px-4 py-3">
+            <div>
+              <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">공개 설정</p>
+              <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
+                {isPublic ? '누구나 이 보드를 볼 수 있어요' : '나만 이 보드를 볼 수 있어요'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsPublic((v) => !v)}
+              className={`relative w-11 h-6 rounded-full transition-colors ${isPublic ? 'bg-zinc-900 dark:bg-zinc-50' : 'bg-zinc-300 dark:bg-zinc-600'}`}
+            >
+              <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white dark:bg-zinc-900 rounded-full shadow transition-transform ${isPublic ? 'translate-x-5' : 'translate-x-0'}`} />
+            </button>
           </div>
 
           {/* ── 이미지 섹션 ── */}

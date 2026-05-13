@@ -67,6 +67,7 @@ export default async function EditBoardPage({
       boardId={id}
       initialTitle={board.title}
       initialDescription={board.description ?? ''}
+      initialIsPublic={board.is_public ?? true}
       initialImages={images}
       initialVideos={videos}
     />

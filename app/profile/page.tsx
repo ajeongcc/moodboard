@@ -13,6 +13,12 @@ export default async function ProfilePage() {
 
   if (!user) redirect('/login')
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('username, avatar_url')
+    .eq('id', user.id)
+    .single()
+
   const { data: boards } = await supabase
     .from('moodboards')
     .select('*, moodboard_images(*)')
@@ -24,6 +30,13 @@ export default async function ProfilePage() {
     month: 'long',
     day: 'numeric',
   })
+
+  const displayName = profile?.username || user.email
+
+  let avatarUrl: string | null = null
+  if (profile?.avatar_url) {
+    avatarUrl = supabase.storage.from('avatars').getPublicUrl(profile.avatar_url).data.publicUrl
+  }
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
@@ -40,13 +53,35 @@ export default async function ProfilePage() {
 
         {/* 프로필 카드 */}
         <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 flex items-center gap-5 mb-10">
-          <div className="w-14 h-14 rounded-full bg-zinc-900 dark:bg-zinc-50 flex items-center justify-center text-white dark:text-zinc-900 text-2xl font-bold select-none shrink-0">
-            {user.email?.[0].toUpperCase()}
+          {/* 아바타 */}
+          <div className="shrink-0">
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt="프로필 사진"
+                className="w-14 h-14 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-14 h-14 rounded-full bg-zinc-900 dark:bg-zinc-50 flex items-center justify-center text-white dark:text-zinc-900 text-2xl font-bold select-none">
+                {user.email?.[0].toUpperCase()}
+              </div>
+            )}
           </div>
-          <div>
-            <p className="font-semibold text-zinc-900 dark:text-zinc-50">{user.email}</p>
-            <p className="text-sm text-zinc-400 dark:text-zinc-500 mt-0.5">가입일: {joinedAt}</p>
+          {/* 이름 / 이메일 */}
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-zinc-900 dark:text-zinc-50 truncate">{displayName}</p>
+            {profile?.username && (
+              <p className="text-sm text-zinc-400 dark:text-zinc-500 truncate">{user.email}</p>
+            )}
+            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">가입일: {joinedAt}</p>
           </div>
+          {/* 편집 버튼 */}
+          <Link
+            href="/profile/edit"
+            className="shrink-0 rounded-lg border border-zinc-200 dark:border-zinc-700 px-3 py-1.5 text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition"
+          >
+            편집
+          </Link>
         </div>
 
         {/* 내 무드보드 섹션 */}

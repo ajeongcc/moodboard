@@ -12,6 +12,7 @@ export default function NewBoardPage() {
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [isPublic, setIsPublic] = useState(true)
   const [files, setFiles] = useState<File[]>([])
   const [previews, setPreviews] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
@@ -47,7 +48,7 @@ export default function NewBoardPage() {
 
     const { data: board, error: boardError } = await supabase
       .from('moodboards')
-      .insert({ user_id: user.id, title, description })
+      .insert({ user_id: user.id, title, description, is_public: isPublic })
       .select()
       .single()
 
@@ -120,6 +121,23 @@ export default function NewBoardPage() {
               rows={3}
               className="rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-50 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 outline-none focus:border-zinc-900 dark:focus:border-zinc-400 focus:ring-2 focus:ring-zinc-900/10 dark:focus:ring-zinc-400/20 transition resize-none"
             />
+          </div>
+
+          {/* 공개 설정 토글 */}
+          <div className="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-zinc-800 px-4 py-3">
+            <div>
+              <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">공개 설정</p>
+              <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
+                {isPublic ? '누구나 이 보드를 볼 수 있어요' : '나만 이 보드를 볼 수 있어요'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsPublic((v) => !v)}
+              className={`relative w-11 h-6 rounded-full transition-colors ${isPublic ? 'bg-zinc-900 dark:bg-zinc-50' : 'bg-zinc-300 dark:bg-zinc-600'}`}
+            >
+              <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white dark:bg-zinc-900 rounded-full shadow transition-transform ${isPublic ? 'translate-x-5' : 'translate-x-0'}`} />
+            </button>
           </div>
 
           <div className="flex flex-col gap-3">
