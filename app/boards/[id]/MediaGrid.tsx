@@ -58,6 +58,7 @@ export default function MediaGrid({ images, videos, boardId, currentUserId }: Pr
   // 미디어 선택 시 댓글 불러오기
   useEffect(() => {
     if (!selected) { setComments([]); setInput(''); return }
+    const currentSelected = selected
     setLoadingComments(true)
     setComments([])
 
@@ -66,7 +67,7 @@ export default function MediaGrid({ images, videos, boardId, currentUserId }: Pr
       const { data: raw } = await supabase
         .from('media_comments')
         .select('*')
-        .eq('media_id', selected.id)
+        .eq('media_id', currentSelected.id)
         .order('created_at', { ascending: true })
 
       if (!raw || raw.length === 0) { setLoadingComments(false); return }
